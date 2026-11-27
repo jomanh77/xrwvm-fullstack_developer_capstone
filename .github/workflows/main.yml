@@ -3,30 +3,32 @@ on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
-  checks:
+  lint-python:
+    name: Lint Python Files
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Django dependencies
-        run: python -m pip install -r server/requirements.txt
-      - name: Check Django configuration
-        run: python server/manage.py check
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Install Python linter
+        run: python -m pip install flake8
+      - name: Run Flake8
+        run: flake8 server --select=E9,F63,F7,F82
+  lint-javascript:
+    name: Lint JavaScript Files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check Express syntax
-        run: find server/database -maxdepth 1 -name '*.js' -exec node --check {} \;
-      - name: Install React dependencies
-        working-directory: server/frontend
-        run: npm install --legacy-peer-deps
-      - name: Build React frontend
-        env:
-          CI: "false"
-        working-directory: server/frontend
-        run: npm run build
+      - name: Install JavaScript linter
+        run: npm install --prefix "$RUNNER_TEMP/capstone-lint" eslint@8
+      - name: Run ESLint
+        run: >-
+          "$RUNNER_TEMP/capstone-lint/node_modules/.bin/eslint"
+          --no-eslintrc --env es2022,node,browser
+          --parser-options '{"sourceType":"module","ecmaFeatures":{"jsx":true}}'
+          --rule 'no-dupe-keys:error' --rule 'no-unreachable:error'
+          --ext .js,.jsx server/database server/frontend/src
