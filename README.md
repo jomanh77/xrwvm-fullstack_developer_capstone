@@ -1,4 +1,6 @@
-# Car Dealership Portal
+# fullstack_developer_capstone
+
+Car Dealership Portal
 
 - Repository name: `xrwvm-fullstack_developer_capstone`
-- Project name: Car Dealership Portal
+- Project name: `fullstack_developer_capstone`
